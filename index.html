@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测测你在古代是哪位诗人？</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --cream: #faf9f5; --ink: #2c2c2c; --vermilion: #c94043; --jade: #6b8e7c; --gold: #c2a878; --light-gold: #e2d5b8; }
+        body { font-family: 'Noto Serif SC', serif; background: var(--cream); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+        .bg-base { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--cream); background-image: radial-gradient(at 0% 0%, rgba(139, 168, 152, 0.12) 0px, transparent 60%), radial-gradient(at 100% 0%, rgba(226, 213, 184, 0.15) 0px, transparent 60%), radial-gradient(at 100% 100%, rgba(139, 168, 152, 0.1) 0px, transparent 50%), radial-gradient(at 0% 100%, rgba(226, 213, 184, 0.1) 0px, transparent 50%); z-index: -3; pointer-events: none; }
+        #heroMarquee { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; opacity: 0.15; pointer-events: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 15px; mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
+        .v-track { display: flex; flex-direction: column; gap: 15px; animation: scroll-v 40s linear infinite; }
+        .v-track.reverse { animation: scroll-v-rev 45s linear infinite; }
+        .v-track img { width: 100%; border-radius: 12px; filter: grayscale(20%); object-fit: cover; }
+        @keyframes scroll-v { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+        @keyframes scroll-v-rev { 0% { transform: translateY(-50%); } 100% { transform: translateY(0); } }
+
+        .share-section { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; padding: 30px; margin-top: 30px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        .share-qr { width: 180px; height: 180px; margin: 0 auto 15px; border-radius: 12px; padding: 8px; background: white; border: 1px solid #eee; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.02); animation: floatQR 3s ease-in-out infinite;}
+        @keyframes floatQR { 0%, 100% { transform: translateY(0); box-shadow: 0 4px 10px rgba(0,0,0,0.02); } 50% { transform: translateY(-8px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); } }
+        .share-title { font-size: 1.25rem; color: var(--jade); font-weight: bold; margin-bottom: 15px; letter-spacing: 1px;}
+        .share-desc { font-size: 1rem; color: var(--ink); line-height: 1.8; margin-bottom: 25px; }
+
+        .minimal-mountains { position: fixed; bottom: -10vh; left: 0; width: 100%; height: 50vh; pointer-events: none; z-index: -2; overflow: hidden; }
+        .minimal-mountain { position: absolute; border-radius: 50%; background: linear-gradient(180deg, rgba(139, 168, 152, 0.12) 0%, rgba(139, 168, 152, 0) 100%); }
+        .minimal-mountain:nth-child(1) { width: 120vw; height: 120vw; left: -10vw; top: 30%; }
+        .minimal-mountain:nth-child(2) { width: 100vw; height: 100vw; left: 40vw; top: 45%; background: linear-gradient(180deg, rgba(194, 168, 120, 0.08) 0%, rgba(194, 168, 120, 0) 100%); }
+        .minimal-mountain:nth-child(3) { width: 150vw; height: 150vw; left: -30vw; top: 55%; background: linear-gradient(180deg, rgba(107, 142, 124, 0.1) 0%, rgba(107, 142, 124, 0) 100%); }
+
+        .poetic-orbs { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .orb { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%); animation: drift 30s infinite linear; opacity: 0.7; }
+        .orb:nth-child(1) { width: 40vw; height: 40vw; top: -10%; left: 10%; animation-duration: 40s; }
+        .orb:nth-child(2) { width: 30vw; height: 30vw; top: 50%; right: -5%; animation-duration: 35s; animation-direction: reverse; }
+        .orb:nth-child(3) { width: 20vw; height: 20vw; top: 20%; right: 30%; animation-duration: 45s; opacity: 0.5; }
+        @keyframes drift { 0% { transform: translate(0, 0) rotate(0deg); } 33% { transform: translate(3vw, -4vh) rotate(120deg); } 66% { transform: translate(-2vw, 2vh) rotate(240deg); } 100% { transform: translate(0, 0) rotate(360deg); } }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10;}
+        .page { display: none; animation: fadeIn 0.6s ease-out; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .welcome-page { text-align: center; padding: 40px 20px; }
+        .main-title { font-family: 'ZCOOL XiaoWei', serif; font-size: clamp(2rem, 6vw, 3.5rem); color: var(--ink); margin-bottom: 16px; letter-spacing: 4px; text-shadow: 2px 2px 4px rgba(0,0,0,0.05); }
+        .subtitle { font-size: 1.1rem; color: var(--jade); margin-bottom: 40px; font-weight: 400; }
+        .poem-quote { font-size: 1.2rem; color: var(--ink); line-height: 2; margin: 40px 0; padding: 30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); border-radius: 12px; border: 1px solid rgba(255,255,255,0.8); position: relative; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .poem-quote::before, .poem-quote::after { position: absolute; font-size: 4rem; color: var(--vermilion); opacity: 0.15; font-family: Georgia, serif; }
+        .poem-quote::before { content: '"'; top: 10px; left: 15px; }
+        .poem-quote::after { content: '"'; bottom: -10px; right: 15px; }
+        .poem-author { display: block; margin-top: 15px; font-size: 0.95rem; color: var(--jade); font-weight: 600; }
+        .start-btn, .restart-btn { display: inline-block; padding: 18px 50px; font-size: 1.2rem; font-family: 'Noto Serif SC', serif; background: linear-gradient(135deg, var(--vermilion) 0%, #a83232 100%); color: white; border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(201,64,67,0.3); margin-top: 30px; }
+        .start-btn:hover, .restart-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(201,64,67,0.4); }
+        .restart-btn { background: linear-gradient(135deg, var(--jade) 0%, #4f6a5b 100%); width: 100%; max-width: 300px; display: block; margin: 0 auto; box-shadow: 0 4px 15px rgba(107,142,124,0.3); }
+
+        .test-page { padding: 20px; }
+        .progress-container { margin-bottom: 30px; }
+        .progress-text { text-align: center; font-size: 0.95rem; color: var(--jade); margin-bottom: 10px; }
+        .progress-bar { height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--jade) 0%, var(--gold) 100%); border-radius: 10px; transition: width 0.5s ease; }
+        .question-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; padding: 35px 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.04); animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .question-number { display: inline-block; width: 36px; height: 36px; line-height: 36px; text-align: center; background: linear-gradient(135deg, var(--vermilion) 0%, #a83232 100%); color: white; border-radius: 50%; font-weight: 600; margin-bottom: 15px; }
+        .question-title { font-size: 1.15rem; line-height: 1.7; margin-bottom: 25px; color: var(--ink); }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option { padding: 18px 22px; background: rgba(255,255,255,0.9); border: 2px solid rgba(0,0,0,0.04); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; line-height: 1.6; text-align: left; }
+        .option:hover { border-color: rgba(107,142,124,0.4); background: rgba(107,142,124,0.05); transform: translateX(5px); }
+        .option.selected { border-color: var(--jade); background: rgba(107,142,124,0.1); }
+        .option-letter { display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center; background: var(--gold); color: white; border-radius: 50%; font-size: 0.85rem; font-weight: 600; margin-right: 12px; }
+
+        .loading-page { text-align: center; padding: 60px 20px; }
+        .loading-text { font-family: 'ZCOOL XiaoWei', serif; font-size: 1.8rem; color: var(--ink); animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        
+        .loading-dots { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+        .loading-dot { width: 12px; height: 12px; background: var(--jade); border-radius: 50%; animation: bounce 1.4s ease-in-out infinite; }
+        .loading-dot:nth-child(1) { animation-delay: 0s; } .loading-dot:nth-child(2) { animation-delay: 0.2s; } .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
+
+        .result-page { padding: 20px; }
+        .result-header { text-align: center; margin-bottom: 30px; }
+        .result-label { font-size: 1rem; color: var(--jade); margin-bottom: 10px; }
+        .poet-avatar-container { position: relative; width: 200px; height: 200px; margin: 0 auto 20px auto; animation: floatAvatar 4s ease-in-out infinite; }
+        .poet-avatar { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 6px solid white; box-shadow: 0 15px 35px rgba(107, 142, 124, 0.15); background-color: var(--cream); }
+        .poet-avatar-container::after { content: ''; position: absolute; bottom: -10px; left: 10%; width: 80%; height: 20px; background: radial-gradient(ellipse at center, rgba(107,142,124,0.15) 0%, transparent 70%); z-index: -1; border-radius: 50%; animation: shadowPulse 4s ease-in-out infinite; }
+        @keyframes floatAvatar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes shadowPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.85); opacity: 0.5; } }
+        .poet-name { font-family: 'ZCOOL XiaoWei', serif; font-size: clamp(2.5rem, 8vw, 4rem); color: var(--ink); margin-bottom: 10px; }
+        .poet-code { display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, var(--gold) 0%, var(--light-gold) 100%); color: white; border-radius: 20px; font-size: 0.95rem; font-weight: 600; letter-spacing: 2px; }
+        .modern-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 25px 0; }
+        .modern-tag { padding: 8px 18px; background: rgba(201,64,67,0.06); color: var(--vermilion); border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(201,64,67,0.15); }
+        .mental-state { font-size: 1rem; color: var(--ink); line-height: 1.8; padding: 20px; background: rgba(255,255,255,0.7); backdrop-filter: blur(5px); border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--vermilion); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .classic-poem { text-align: center; padding: 25px; background: linear-gradient(135deg, rgba(107,142,124,0.06) 0%, rgba(194,168,120,0.06) 100%); border-radius: 16px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.6); }
+        .classic-poem-text { font-size: 1.3rem; line-height: 2; color: var(--ink); font-style: italic; }
+        
+        .radar-section { margin-bottom: 30px; }
+        .radar-title { font-size: 1.1rem; color: var(--ink); margin-bottom: 20px; text-align: center; }
+        .dimension-bars { display: flex; flex-direction: column; gap: 18px; }
+        .dimension-item { background: rgba(255,255,255,0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.8); padding: 15px 18px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .dimension-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .dimension-name { color: var(--ink); font-weight: 600; }
+        .dimension-values { color: var(--jade); font-weight: 600; }
+        .dimension-bar { height: 10px; background: rgba(0,0,0,0.05); border-radius: 5px; overflow: hidden; position: relative; }
+        .dimension-fill { position: absolute; height: 100%; border-radius: 5px; transition: all 0.8s ease-out; }
+        .dimension-fill.left { background: linear-gradient(90deg, var(--jade) 0%, #8ca699 100%); }
+        .dimension-fill.right { background: linear-gradient(90deg, #8ca699 0%, var(--jade) 100%); }
+
+        .poet-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .card-header { height: 6px; background: linear-gradient(90deg, var(--jade) 0%, var(--gold) 50%, var(--jade) 100%); }
+        .card-content { padding: 30px; }
+        .card-title { font-family: 'ZCOOL XiaoWei', serif; font-size: 1.6rem; color: var(--ink); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .card-title::before { content: '📜'; font-size: 1.2rem; }
+        .bio-section { padding: 20px; background: rgba(107,142,124,0.05); border-left: 4px solid var(--jade); border-radius: 0 12px 12px 0; margin-bottom: 25px; line-height: 1.8; font-size: 0.95rem; }
+        .personality-section { margin-bottom: 25px; }
+        .section-label { font-size: 0.9rem; color: var(--gold); margin-bottom: 12px; font-weight: 600; }
+        .personality-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .personality-tag { padding: 6px 14px; background: linear-gradient(135deg, var(--gold) 0%, var(--light-gold) 100%); color: white; border-radius: 15px; font-size: 0.85rem; }
+        .poems-section { margin-bottom: 25px; }
+        .poems-box { padding: 20px; border: 1px dashed rgba(201,64,67,0.2); background: rgba(255,255,255,0.5); border-radius: 12px; position: relative; }
+        .poems-box::before { content: '❝'; position: absolute; top: -15px; left: 20px; font-size: 2.5rem; color: var(--vermilion); opacity: 0.2; font-family: Georgia, serif; }
+        .poem-item { padding: 10px 0; line-height: 1.8; font-size: 0.95rem; color: var(--ink); border-bottom: 1px dashed rgba(0,0,0,0.05); }
+        .poem-item:last-child { border-bottom: none; }
+        .match-section { padding: 25px; background: linear-gradient(135deg, rgba(107,142,124,0.08) 0%, rgba(194,168,120,0.08) 100%); border-radius: 16px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.5); }
+        .match-label { font-size: 0.9rem; color: var(--jade); font-weight: 600; margin-bottom: 10px; }
+        .match-reason { font-size: 1rem; line-height: 1.8; color: var(--ink); }
+        .heart-animation { position: absolute; bottom: 15px; right: 20px; font-size: 1.5rem; animation: heartbeat 1.5s ease-in-out infinite; }
+
+        .chat-section { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.06); margin-bottom: 30px; }
+        .chat-section::before { content: ''; display: block; height: 6px; background: linear-gradient(90deg, #c94043 0%, #d4a84b 50%, #6b8e7c 100%); }
+        .chat-header { padding: 20px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .chat-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--jade) 0%, #4f6a5b 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .chat-title { font-family: 'ZCOOL XiaoWei', serif; font-size: 1.15rem; color: var(--ink); margin: 0; }
+        .chat-history { height: 300px; overflow-y: auto; padding: 15px 20px; background: rgba(0,0,0,0.015); border-radius: 12px; margin: 20px 25px; display: flex; flex-direction: column; gap: 15px; }
+        .chat-welcome { text-align: center; color: #888; font-style: italic; padding: 20px 0; font-size: 0.95rem; }
+        .chat-message { max-width: 85%; padding: 12px 16px; line-height: 1.7; font-size: 0.95rem; word-wrap: break-word; }
+        .chat-message.user { align-self: flex-end; background: linear-gradient(135deg, #c94043 0%, #a83232 100%); color: white; border-radius: 16px 16px 4px 16px; box-shadow: 0 4px 10px rgba(201,64,67,0.15); }
+        .chat-message.ai { align-self: flex-start; background: white; color: var(--ink); border-radius: 16px 16px 16px 4px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .chat-message.system { align-self: center; background: transparent; color: #999; font-size: 0.85rem; padding: 5px 15px; }
+        .chat-input-area { display: flex; gap: 10px; padding: 0 25px 25px 25px; margin-top: 15px; }
+        .chat-input { flex: 1; padding: 12px 15px; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; background: white; font-family: 'Noto Serif SC', serif; font-size: 0.95rem; resize: none; height: 48px; outline: none; transition: border-color 0.3s ease; box-shadow: inset 0 2px 5px rgba(0,0,0,0.01); }
+        .chat-input:focus { border-color: var(--jade); }
+        .chat-send-btn { padding: 12px 20px; background: linear-gradient(135deg, #c94043 0%, #a83232 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Noto Serif SC', serif; font-size: 0.95rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; min-width: 80px; }
+        .chat-send-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(201,64,67,0.3); }
+        .chat-send-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .hidden { display: none; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .welcome-page, .test-page, .result-page { padding: 20px 15px; }
+            .question-card { padding: 25px 20px; }
+            .option { padding: 15px 18px; font-size: 0.95rem; }
+            .card-content { padding: 20px; }
+            .poem-quote { padding: 25px 20px; }
+            .chat-history { height: 250px; }
+            .chat-input-area { flex-direction: column; }
+            .chat-send-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-base"></div>
+    <div id="heroMarquee"><div class="v-track" id="vTrack1"></div><div class="v-track reverse" id="vTrack2"></div><div class="v-track" id="vTrack3"></div></div>
+    <div class="minimal-mountains"><div class="minimal-mountain"></div><div class="minimal-mountain"></div><div class="minimal-mountain"></div></div>
+    <div class="poetic-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+
+    <div class="container">
+        <div id="welcomePage" class="page active welcome-page">
+            <h1 class="main-title">测测你在古代是哪位诗人？</h1>
+            <p class="subtitle">当传统文学遇上 MBTI</p>
+            <div class="poem-quote">君不见黄河之水天上来，奔流到海不复回。<br>君不见高堂明镜悲白发，朝如青丝暮成雪。<br>人生得意须尽欢，莫使金樽空对月。<br>天生我材必有用，千金散尽还复来。<span class="poem-author">——李白《将进酒》</span></div>
+            <button class="start-btn" onclick="startTest()">开始测试</button>
+        </div>
+
+        <div id="testPage" class="page test-page">
+            <div class="progress-container"><p class="progress-text">第 <span id="currentQuestion">1</span> 题 / 共 20 题</p><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div></div>
+            <div class="question-card" id="questionCard"></div>
+        </div>
+
+        <div id="loadingPage" class="page loading-page">
+            <p class="loading-text">命运齿轮转动中...</p><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+        </div>
+
+        <div id="resultPage" class="page result-page"></div>
+    </div>
+
+    <script>
+        const poets = [
+            { name: "李白", code: "LB-WILD", avatar: "images/LB-WILD.jpg", coordinate: [-5, -10, +8, +10], tags: ["先天反骨圣体", "职场整顿者"], description: "你骨子里有不服输的劲儿，讨厌规则束缚，喜欢自由奔放的生活。你不适合朝九晚五，适合诗和远方。", poems: ["天生我材必有用，千金散尽还复来", "仰天大笑出门去，我辈岂是蓬蒿人", "安能摧眉折腰事权贵，使我不得开心颜"], bio: "李白（701-762），号青莲居士，唐代伟大的浪漫主义诗人。一生追求自由，蔑视权贵，传说他醉酒后为捞水中月亮而溺亡，如此浪漫的结局再适合他不过。", personality: ["浪漫主义", "狂放不羁", "追求自由", "蔑视权贵", "才华横溢"], representativeLines: ["床前明月光，疑是地上霜", "举杯邀明月，对影成三人", "长风破浪会有时，直挂云帆济沧海"], matchReason: "你和李白一样，骨子里有一种不服输的劲头。你们都讨厌被规则束缚，喜欢追求自由，遇到困难选择迎难而上。", message: "愿君胸藏星斗，身寄烟霞；逸气凌云，狂怀自适。顺境则纵酒长歌，逆境亦乘风独往，不负山河，不负初心。" },
+            { name: "杜甫", code: "DF-EMO", avatar: "images/DF-EMO.jpg", coordinate: [+9, +7, -10, -2], tags: ["重度内耗专家", "操心命"], description: "你是个典型的操心命，永远在为还没发生的事担忧。你的人生关键词是'万一'和'但是'。", poems: ["国破山河在，城春草木深", "朱门酒肉臭，路有冻死骨", "安得广厦千万间，大庇天下寒士俱欢颜"], bio: "杜甫（712-770），字子美，唐代现实主义诗人。他经历安史之乱，颠沛流离，即使茅屋被秋风吹破，还在想着'大庇天下寒士'。", personality: ["忧国忧民", "内耗严重", "责任心强", "现实主义", "情感细腻"], representativeLines: ["烽火连三月，家书抵万金", "白日放歌须纵酒，青春作伴好还乡", "无边落木萧萧下，不尽长江滚滚来"], matchReason: "总是操心太多、内耗太重。这种性格让你成为朋友眼中最靠谱的人，但有时候也让你活得太累。学会放过自己吧。", message: "愿君常怀悲悯，心存苍生；历世沧桑，不改赤诚。肩担道义，怀藏温良，浮沉之间，风骨长存。" },
+            { name: "苏轼", code: "SS-CHILL", avatar: "images/SS-CHILL.jpg", coordinate: [-2, -6, +10, +8], tags: ["顶级乐天派", "荒野美食家"], description: "你是朋友圈里的开心果，无论什么糟心事到你这儿都能变成段子。被贬到哪都能活成度假。", poems: ["但愿人长久，千里共婵娟", "竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生", "大江东去，浪淘尽，千古风流人物"], bio: "苏轼（1037-1101），号东坡居士。一生不是在被贬，就是在去被贬的路上，但他发明了东坡肉，写下了《赤壁赋》。苦中作乐的能力，堪称历史第一。", personality: ["乐观豁达", "美食达人", "随遇而安", "才华全面", "社交达人"], representativeLines: ["春宵一刻值千金，花有清香月有阴", "不识庐山真面目，只缘身在此山中", "欲把西湖比西子，淡妆浓抹总相宜"], matchReason: "令人羡慕的乐天心态是你的最大特质。无论遭遇什么困境，你相信一切都是最好的安排，这种心态值得所有人学习。", message: "愿君历经风雨，心自澄明。宠辱不惊，得失随缘；可入世济俗，可出世安闲，一蓑烟雨，终生从容。" },
+            { name: "王维", code: "WW-ZEN", avatar: "images/WW-ZEN.jpg", coordinate: [-9, +4, +3, -9], tags: ["佛系青年", "大厂裸辞隐居者"], description: "你的人生信条是'躺平'，拒绝内卷，崇尚自然。别人挤破头抢的东西，你微微一笑：'无所谓。'", poems: ["行到水穷处，坐看云起时", "大漠孤烟直，长河落日圆", "独坐幽篁里，弹琴复长啸"], bio: "王维（701-761），号摩诘居士。他年少成名，在朝中做过大官，却在盛年选择隐居终南山。半官半隐，既有诗和远方，也有面包和存款。", personality: ["佛系淡定", "追求宁静", "艺术修养高", "向往自然", "内心富足"], representativeLines: ["渭城朝雨浥轻尘，客舍青青柳色新", "深林人不知，明月来相照", "返景入深林，复照青苔上"], matchReason: "真正的佛系青年。你向往宁静致远的生活，追求内心的平静而非外在的喧嚣。不是躺平，而是另一种形式的优雅生活。", message: "愿君心藏丘壑，胸隐林泉。处尘嚣而守清寂，居俗世而慕云山；静观云舒，安守本心，恬淡自渡。" },
+            { name: "李清照", code: "LQZ-SASS", avatar: "images/LQZ-SASS.jpg", coordinate: [+1, -8, -6, +6], tags: ["千古第一拽姐", "清醒独立大女主"], description: "你是那种'人间清醒'型选手，感情上不将就，事业上有主见。谁说女子不如男？", poems: ["寻寻觅觅，冷冷清清，凄凄惨惨戚戚", "生当作人杰，死亦为鬼雄", "知否知否？应是绿肥红瘦"], bio: "李清照（1084-1155），宋代女词人。她经历了丧夫、流亡，在那个年代，她喝酒、打牌、写文章，活成了最拽的大女主。", personality: ["独立清醒", "才华横溢", "敢爱敢恨", "情感丰富", "品味高雅"], representativeLines: ["莫道不销魂，帘卷西风，人比黄花瘦", "此情无计可消除，才下眉头，却上心头", "花自飘零水自流，一种相思，两处闲愁"], matchReason: "清醒大女主。在感情上不将就，在生活中有主见。无论男女，都应该活出自己的精彩，你的价值由你自己定义。", message: "愿君才情立身，傲骨自持。谙风月之柔，具孤高之节；离合不惊，悲欢自渡，芳华不负，岁月安然。" },
+            { name: "辛弃疾", code: "XQJ-FIGHT", avatar: "images/XQJ-FIGHT.jpg", coordinate: [+10, -3, -4, +7], tags: ["武德充沛", "六边形狂战士"], description: "你是个全能选手，文能提笔安天下，武能马上定乾坤。别人只会一样，你偏偏样样都行。", poems: ["众里寻他千百度，蓦然回首，那人却在灯火阑珊处", "醉里挑灯看剑，梦回吹角连营", "想当年，金戈铁马，气吞万里如虎"], bio: "辛弃疾（1140-1207），南宋豪放派词人。他本是抗金将领，率领过起义。文武双全，六边形战士。", personality: ["全能型", "抗压能力强", "理想主义者", "热血爱国", "多才多艺"], representativeLines: ["天下英雄谁敌手？曹刘", "青山遮不住，毕竟东流去", "少年不识愁滋味，爱上层楼"], matchReason: "你是不肯服输的六边形战士。不满足于平庸，即使现实一次次打击你，也会站起来继续战斗。", message: "愿君怀凌云壮志，存赤胆孤忠。胸有家国意气，身含傲骨锋芒；纵壮志难伸，热血终不凉。" },
+            { name: "白居易", code: "BJY-WORK", avatar: "images/BJY-WORK.jpg", coordinate: [+8, +6, +2, +9], tags: ["现实主义打工人", "KPI狂魔"], description: "你是工作狂本狂，相信只要努力就一定有回报。你的座右铭是'在其位谋其政'。", poems: ["同是天涯沦落人，相逢何必曾相识", "离离原上草，一岁一枯荣", "千呼万唤始出来，犹抱琵琶半遮面"], bio: "白居易（772-846），唐代现实主义诗人。读书读到口生疮，写字写到手磨出茧。他的诗追求通俗易懂，连老奶奶都能听懂。", personality: ["勤勉务实", "接地气", "亲民", "有责任心", "才华与努力并存"], representativeLines: ["野火烧不尽，春风吹又生", "日出江花红胜火，春来江水绿如蓝", "来如春梦几多时？去似朝云无觅处"], matchReason: "相信一分耕耘一分收获，在职场上是妥妥的KPI狂魔。这种脚踏实地的人生态度，是你最大的魅力所在。", message: "愿君守本存真，安度流年。阅尽世情纷扰，常怀仁厚温良；顺世而不随俗，自持一片天真。" },
+            { name: "李商隐", code: "LSY-BE", avatar: "images/LSY-BE.jpg", coordinate: [+3, +5, -9, -4], tags: ["BE美学大师", "究极谜语人"], description: "你是个emo大师，说什么都喜欢绕来绕去。别人问你在干嘛，你说'在高堂明镜悲白发'。", poems: ["春蚕到死丝方尽，蜡炬成灰泪始干", "此情可待成追忆，只是当时已惘然", "身无彩凤双飞翼，心有灵犀一点通"], bio: "李商隐（约813-858），晚唐诗人。他的一生充满谜团，仕途坎坷。他的诗晦涩难懂，却美得让人心碎。", personality: ["emo达人", "含蓄内敛", "情感深沉", "才华出众", "命运多舛"], representativeLines: ["何当共剪西窗烛，却话巴山夜雨时", "夕阳无限好，只是近黄昏", "直道相思了无益，未妨惆怅是清狂"], matchReason: "你不擅长直接表达感情，却能用最含蓄的方式让人心动。你相信真正的感情应该是执着的，这就是你浪漫的方式。", message: "愿君情藏方寸，憾付流年。懂风月之怅，明尘世之常；勿执过往执念，深情自有归处。" },
+            { name: "陶渊明", code: "TYM-FARM", avatar: "images/TYM-FARM.jpg", coordinate: [-10, -7, +6, -6], tags: ["归隐区UP主", "拒绝内卷第一人"], description: "你是躺平界的祖师爷，早在一千多年前就开创了'田园牧歌'式生活。别人挤都市，你种菜。", poems: ["采菊东篱下，悠然见南山", "种豆南山下，草盛豆苗稀", "羁鸟恋旧林，池鱼思故渊"], bio: "陶渊明（365-427），东晋诗人。他当了十三年的官，又辞职回家种了二十三年的地。用一生诠释了不愿同流合污的傲骨。", personality: ["淡泊名利", "崇尚自然", "傲骨铮铮", "生活简单", "精神独立"], representativeLines: ["桃花源记（节选）", "山气日夕佳，飞鸟相与还", "衣沾不足惜，但使愿无违"], matchReason: "你有一颗向往自由的心，不愿被世俗的规则束缚。在这个人人都在焦虑的时代，你选择了慢下来。", message: "愿君抛尘俗纷竞，归心田园。弃浮名荣辱，守闲逸本真；随心安度，淡泊无争，悠然自适。" },
+            { name: "柳宗元", code: "LZY-ALONE", avatar: "images/LZY-ALONE.jpg", coordinate: [-3, +4, -8, -10], tags: ["孤寡老人", "独自美丽"], description: "你是独处爱好者，享受一个人的时光。别人觉得孤独，你觉得那是自由。", poems: ["千山鸟飞绝，万径人踪灭", "孤舟蓑笠翁，独钓寒江雪", "惊风乱飐芙蓉水，密雨斜侵薜荔墙"], bio: "柳宗元（773-819），唐代文学家。被贬永州十年，在孤独的岁月里，写出了中国文学史上最孤独也最美丽的文字。", personality: ["享受孤独", "才华内敛", "坚韧隐忍", "独立思考", "文学造诣深"], representativeLines: ["烟销日出不见人，欸乃一声山水绿", "回看天际下中流，岩上无心云相逐", "山城过雨百花尽，榕叶满庭莺乱啼"], matchReason: "懂得享受独处的时光。你不需要热闹来填满生活，在孤独中反而能更清楚地认识自己，独自美丽的你不需要别人的认可。", message: "愿君历尽风霜，素心不改。遭世事坎坷，仍存青云之志；静以自愈，敛而自修，风骨长青。" },
+            { name: "陆游", code: "LY-CAT", avatar: "images/LY-CAT.jpg", coordinate: [+8, +2, -5, -1], tags: ["重度猫奴", "意难平老兵"], description: "你是个爱国青年，有报国之志却郁郁不得志。但你还有个爱好——撸猫。", poems: ["王师北定中原日，家祭无忘告乃翁", "山重水复疑无路，柳暗花明又一村", "零落成泥碾作尘，只有香如故"], bio: "陆游（1125-1210），南宋爱国诗人。一生都在盼着收复中原。但他有个秘密爱好——写诗夸自己的猫，妥妥的猫奴语录。", personality: ["爱国情怀", "意志坚定", "内心柔软", "才华横溢", "情感细腻"], representativeLines: ["纸上得来终觉浅，绝知此事要躬行", "夜阑卧听风吹雨，铁马冰河入梦来", "何方可化身千亿，一树梅前一放翁"], matchReason: "有着深沉的情怀，同时也有一颗柔软的心。嘴上说着家国天下，心里却惦记着猫。外刚内柔，既可靠又有趣。", message: "愿君常怀热忱，不负平生。怀家国之思，存风月之情；岁月流转，赤心如故，不负韶华，不负己身。" },
+            { name: "曹操", code: "CC-BOSS", avatar: "images/CC-BOSS.jpg", coordinate: [+10, -4, +4, +10], tags: ["霸道总裁", "乱世枭雄"], description: "你天生就是当领导的料，有魄力、有手段、有魅力。跟着你干的人都服你。", poems: ["对酒当歌，人生几何", "何以解忧？唯有杜康", "老骥伏枥，志在千里"], bio: "曹操（155-220），东汉末年枭雄。他挟天子以令诸侯，统一北方。他是奸雄，也是英雄；是诗人，也是军事家。", personality: ["霸气外露", "领导力强", "务实果断", "知人善任", "格局宏大"], representativeLines: ["日月之行，若出其中", "星汉灿烂，若出其里", "烈士暮年，壮心不已"], matchReason: "你不甘于平庸，总想着干一番大事业。有眼光、有魄力、敢担当，是那种能带领团队走向胜利的人。", message: "愿君胸怀寰宇，气蕴风雷。有经世之格局，有逆势之胆魄；行事果决，城府深藏，破浪乘风，终成远志。" },
+            { name: "孟浩然", code: "MHR-FLAT", avatar: "images/MHR-FLAT.jpg", coordinate: [-8, -5, +2, -3], tags: ["躺平鼻祖", "社交漏斗"], description: "你是朋友圈里最佛的那个，约你吃饭永远说'再说吧'。但你的精神状态领先世界一千年。", poems: ["春眠不觉晓，处处闻啼鸟", "夜来风雨声，花落知多少", "气蒸云梦泽，波撼岳阳城"], bio: "孟浩然（689-740），唐代山水田园诗派先驱。在唐朝这个所有人都削尖脑袋往上爬的时代，他选择回家种田。", personality: ["极度佛系", "不慕荣利", "热爱自然", "社恐本恐", "内心平静"], representativeLines: ["开轩面场圃，把酒话桑麻", "待到重阳日，还来就菊花", "移舟泊烟渚，日暮客愁新"], matchReason: "在所有人都拼命内卷的时候，你选择了躺平。这是一种看透人生后的豁达。佛系，是最高级的生活哲学。", message: "愿君随性安时，不逐浮华。耽山水清趣，远车马喧嚣；寡欲无争，栖心闲寂，静享人间清欢。" },
+            { name: "贺知章", code: "HZZ-SOCIAL", avatar: "images/HZZ-SOCIAL.jpg", coordinate: [-1, -2, +9, +10], tags: ["四明狂客", "退休社牛老翁"], description: "你是社交天花板，跟谁都能聊得来。退休生活比上班还精彩，天天约饭局。", poems: ["不知细叶谁裁出，二月春风似剪刀", "少小离家老大回，乡音无改鬓毛衰", "唯有门前镜湖水，春风不改旧时波"], bio: "贺知章（约659-744），唐代诗人中长寿的代表。在朝中做了五十多年官，他还一手发掘了李白，社交牛人实锤。", personality: ["社交牛人", "乐观开朗", "善于发现人才", "心态年轻", "人脉广泛"], representativeLines: ["碧玉妆成一树高，万条垂下绿丝绦", "离别家乡岁月多，近来人事半消磨", "儿童相见不相识，笑问客从何处来"], matchReason: "天生的社交达人。人脉广、心态好。你总能用幽默化解尴尬，用热情感染身边的人。跟你在一起永远不无聊。", message: "愿君通透达观，葆赤子之心。阅尽世态，深谙人情，而不流于圆滑；岁月加身，眉眼犹温，初心未改。" },
+            { name: "杜牧", code: "DM-PLAY", avatar: "images/DM-PLAY.jpg", coordinate: [+5, -7, +5, +9], tags: ["风流才子", "夜店小王子"], description: "你是派对动物，爱热闹、爱美酒、爱美人。及时行乐是你的人生信条。", poems: ["清明时节雨纷纷，路上行人欲断魂", "商女不知亡国恨，隔江犹唱后庭花", "停车坐爱枫林晚，霜叶红于二月花"], bio: "杜牧（803-852），晚唐诗人。出身名门，才华横溢，把满腔热情投入到了寻欢作乐。'十年一觉扬州梦'说的就是他。", personality: ["风流倜傥", "及时行乐", "才华横溢", "讽刺现实", "浪漫不羁"], representativeLines: ["借问酒家何处有，牧童遥指杏花村", "千里莺啼绿映红，水村山郭酒旗风", "天阶夜色凉如水，卧看牵牛织女星"], matchReason: "骨子里有一种及时行乐的洒脱。相信人生苦短，应该尽情享受。这让你成为朋友圈的气氛担当。", message: "愿君才情蕴骨，清醒自持。览尽繁华风月，进退有度；风流而不放纵，温雅而有棱。" },
+            { name: "王安石", code: "WAS-RULE", avatar: "images/WAS-RULE.jpg", coordinate: [+10, +10, -2, +3], tags: ["铁腕卷王", "变法狂人"], description: "你是卷王本王，工作狂到没朋友。你信奉'要么不做，要么做到极致'。", poems: ["春风又绿江南岸，明月何时照我还", "不畏浮云遮望眼，自缘身在最高层", "千门万户曈曈日，总把新桃换旧符"], bio: "王安石（1021-1086），北宋政治家。他发动了著名的变法，那份'天变不足畏，祖宗不足法，人言不足恤'的勇气让人敬佩。", personality: ["意志坚定", "改革创新", "工作狂魔", "目标导向", "不受干扰"], representativeLines: ["飞来峰上千寻塔，闻说鸡鸣见日升", "自古驱民在信诚，一言为重百金轻", "爆竹声中一岁除，春风送暖入屠苏"], matchReason: "不服输的卷王。有远大的理想，只要认定了目标，就会一往无前。跟着你干事业绝对靠谱。", message: "愿君志存高远，守道不移。怀革故之魄力，秉持正之恒心；不徇世俗非议，固守心中正道。" },
+            { name: "鱼玄机", code: "YXJ-FREE", avatar: "images/YXJ-FREE.jpg", coordinate: [+2, -10, -4, +8], tags: ["先锋女性", "精神独立者"], description: "你是那个年代的女性先驱，不愿依附任何人，活出了自己的精彩。", poems: ["易求无价宝，难得有情郎", "羞日遮罗袖，愁春懒起妆", "自能窥宋玉，何必恨王昌"], bio: "鱼玄机（约844-872），唐代女诗人。在那个女子大门不出二门不迈的年代，她开道观、收女弟子，活成了最叛逆的样子。", personality: ["追求独立", "敢爱敢恨", "才情出众", "反抗命运", "敢为人先"], representativeLines: ["枕上潜垂泪，花间暗断肠", "忆君心似西江水，日夜东流无歇时", "春来秋去相思在，秋去春来信息违"], matchReason: "继承了她的独立与勇敢。不愿依附任何人，要用自己的双手创造属于自己的人生，精神值得敬佩。", message: "愿君破世俗之樊笼，立己身之风骨。才情藏怀，傲骨立身；不为俗规所拘，随心自立，自爱自持。" },
+            { name: "屈原", code: "QY-SAD", avatar: "images/QY-SAD.jpg", coordinate: [+6, +8, -10, +1], tags: ["究极理想主义", "精神洁癖"], description: "你是个完美主义者，眼里容不得沙子。在你这里，妥协是不存在的。", poems: ["路漫漫其修远兮，吾将上下而求索", "举世皆浊我独清，众人皆醉我独醒", "长太息以掩涕兮，哀民生之多艰"], bio: "屈原（约前340-278），战国诗人。一心想要振兴楚国，却遭陷害流放。眼看国破，抱石投江，是中国第一位伟大的爱国诗人。", personality: ["理想主义者", "宁折不弯", "爱国忠臣", "精神洁癖", "才华盖世"], representativeLines: ["亦余心之所善兮，虽九死其犹未悔", "袅袅兮秋风，洞庭波兮木叶下", "鸟飞反故乡兮，狐死必首丘"], matchReason: "骨子里有理想主义和精神洁癖。不愿同流合污，坚守自己的原则。这种孤高的精神，是你最动人的地方。", message: "愿君志行高洁，守魂如玉。宁孤清而秉素志，不随流而污清名；怀家国之诚，秉澄澈之节。" },
+            { name: "纳兰性德", code: "NL-LOVE", avatar: "images/NL-LOVE.jpg", coordinate: [-2, +6, -9, -7], tags: ["纯爱战神", "抑郁贵公子"], description: "你是深情本人，谈个恋爱能写一百首词。虽然情路坎坷，但你从不将就。", poems: ["人生若只如初见，何事秋风悲画扇", "被酒莫惊春睡重，赌书消得泼茶香", "当时只道是寻常"], bio: "纳兰性德（1655-1685），清代词人。出身显赫，却是个深度恋爱脑。悼念亡妻的词写得肝肠寸断，可惜天妒英才。", personality: ["深情专一", "感性细腻", "出身高贵", "才华横溢", "英年早逝"], representativeLines: ["一生一代一双人，争教两处销魂", "我是人间惆怅客，知君何事泪纵横", "背灯和月就花阴，已是十年踪迹十年心"], matchReason: "在这个人人都说着'智者不入爱河'的年代，你依然相信爱情。你的不将就，让你活出了最真实的自己。", message: "愿君深谙情味，能释前尘。心秉温良，性含幽思；勿困执念，勿恋过往，余生安渡，风月无伤。" },
+            { name: "岑参", code: "CS-HARD", avatar: "images/CS-HARD.jpg", coordinate: [+9, -2, +4, +5], tags: ["边塞特种兵", "极限运动爱好者"], description: "你是冒险家，待在舒适区会死。总想去看更大的世界，体验更刺激的人生。", poems: ["忽如一夜春风来，千树万树梨花开", "北风卷地白草折，胡天八月即飞雪", "马上相逢无纸笔，凭君传语报平安"], bio: "岑参（约715-770），唐代边塞诗人。别人写边塞靠想象，他写全是亲身经历。他是诗人里少有的硬汉，特种兵诗人。", personality: ["热爱冒险", "勇于探索", "意志坚强", "见识广博", "性格豪爽"], representativeLines: ["古来青史谁不见，今见功名胜古人", "今夜不知何处宿，万里敦煌使人愁", "丈夫贫贱应未足，今日相逢无酒钱"], matchReason: "不愿待在舒适区，总想体验更刺激的人生。别人觉得苦的地方你觉得刺激，这种不安分的心，是你保持年轻的秘诀。", message: "愿君胸揽山河，不惧风霜。怀大漠之豪情，负四方之远志；纵使前路迢递，亦可策马乘风，奔赴远方。" }
+        ];
+
+        const questions = [
+            { title: "周日晚上 22:30，你正躺在床上刷视频，老板突然在群里艾特所有人发了一个 60MB 的方案文档：", options: [ { text: "假装已经睡着。只要我装得够像，周一之前的我就不存在。", scores: [-1, -2, 0, -1] }, { text: "瞬间心率飙升，反复点开又关掉，脑子里已经开始构思怎么改了。", scores: [+1, +1, -2, 0] }, { text: "秒回“收到”，并立刻在脑海里盘算明天怎么把这活儿拆分出去。", scores: [+2, +1, 0, +1] }, { text: "截图发给闺蜜/兄弟吐槽：“看，活爹又发作了”，然后继续刷视频。", scores: [0, -1, +1, +1] } ] },
+            { title: "如果你买彩票意外中了 5000 万，但兑奖的附加条件是必须去一个没有 Wi-Fi 的深山老林里住满五年：", options: [ { text: "还有这种好事？拿钱还能名正言顺逃避社交，现在就出发。", scores: [-2, 0, +1, -2] }, { text: "能带朋友去吗？我出钱把山头包下来，办五年的森林派对！", scores: [0, -1, +2, +2] }, { text: "五年太长了，这会让我完全脱离社会轨道和核心信息圈，我得考虑下。", scores: [+2, +1, -1, 0] }, { text: "先拿钱，然后用钱在山里雇人拉一条专线光纤，规矩是死的人是活的。", scores: [+1, -2, +1, 0] } ] },
+            { title: "在群里疯狂吐槽某个讨厌的客户/老师，按发送后才发现，你发错群了，而且已经过了 2 分钟撤回时限：", options: [ { text: "原地石化，感觉天塌了，甚至已经在构思离职/退学报告。", scores: [0, +1, -2, -1] }, { text: "火速编造一个借口：“不好意思大家，刚才号被盗了/朋友恶作剧！”", scores: [+1, +1, 0, +1] }, { text: "立刻退群，把手机关机，只要我不看，社死就追不上我。", scores: [-1, -2, 0, -2] }, { text: "发一个极其搞笑的表情包强行圆场：“测试一下大家在不在，气氛活跃完毕~”", scores: [0, -1, +2, +2] } ] },
+            { title: "在一个必须出席的百人大型聚餐上，所有人都在虚伪地互相敬酒，而你的“社交电量”已经耗尽：", options: [ { text: "找借口去洗手间，然后在马桶上坐了半个小时玩手机。", scores: [-1, 0, 0, -2] }, { text: "挂上无懈可击的职业微笑，继续完成必要的社交 KPI。", scores: [+2, +1, -1, +1] }, { text: "找到角落里另一个看起来同样社恐的人，两人用眼神达成默契的结盟。", scores: [0, 0, +1, -1] }, { text: "突然站起来端起杯子：“我敬大家一杯，喝完我先干为敬撤了！”试图强行快进。", scores: [+1, -2, +1, +2] } ] },
+            { title: "你熬了三个通宵写出来的方案，被领导评价为“缺乏互联网思维和底层逻辑的赋能”，你会：", options: [ { text: "表面连连点头说“您教训得对”，回去边骂边熬第四个通宵改。", scores: [+1, +2, -1, 0] }, { text: "直接冷脸把文件扔进回收站：既然你不懂欣赏，那我换一家懂的公司。", scores: [-1, -2, 0, 0] }, { text: "陷入深度的自我怀疑，觉得这世界终究没人能懂自己的才华。", scores: [0, 0, -2, -1] }, { text: "当场开始用更高级的黑话和领导辩论，试图在理论上压倒对方。", scores: [+2, -1, 0, +2] } ] },
+            { title: "公司/学校宣布，本周六全体成员必须参加一场没有任何补贴的“荒野求生”团建：", options: [ { text: "背上一大包零食，把这当成一次免费的公费野餐，疯狂蹭吃蹭喝。", scores: [0, 0, +2, +1] }, { text: "极度反感，直接找借口请病假。周末时间神圣不可侵犯。", scores: [-1, -2, 0, -1] }, { text: "准时参加但全程戴着降噪耳机，肉体在团建，灵魂已出窍。", scores: [0, +1, -1, -2] }, { text: "积极担当组长，争取在团建里给领导留下深刻印象，顺便扩展人脉。", scores: [+2, +1, 0, +2] } ] },
+            { title: "收拾房间时，你意外翻出了自己初中时写的中二日记本，翻开第一页：", options: [ { text: "哈哈大笑，直接拍照发朋友圈公开处刑自己的黑历史。", scores: [0, -1, +2, +2] }, { text: "看着那些文字，突然一阵伤感，感叹时光飞逝，青春不再。", scores: [0, 0, -2, -1] }, { text: "立刻找个打火机烧掉或者扔进碎纸机，这种东西绝对不能留存于世。", scores: [+1, +2, 0, -1] }, { text: "认真看完，觉得里面的某些脑洞还挺有意思，留着当以后的创作素材。", scores: [+1, 0, +1, 0] } ] },
+            { title: "你正在进行极其重要的线上会议汇报，你养的猫突然跳上键盘，踩出了一大串乱码发在公屏上：", options: [ { text: "瞬间慌乱，疯狂道歉，觉得自己的专业形象彻底毁于一旦。", scores: [0, +1, -2, -1] }, { text: "举起猫怼向摄像头：“给大家介绍一下，这是我今天请来的联合汇报人。”", scores: [0, -1, +2, +2] }, { text: "面无表情地把猫挪开，删掉乱码，接着刚才的话茬继续讲，仿佛无事发生。", scores: [+2, +2, 0, 0] }, { text: "直接把摄像头关了，假装网卡了，在屏幕后无能狂怒。", scores: [-1, 0, -1, -2] } ] },
+            { title: "在小组讨论中，一个同事/同学巧妙地把你的创意包装成了他自己的功劳，你的反应是：", options: [ { text: "立刻在会上优雅地打断，补充细节，把主导权不动声色地抢回来。", scores: [+2, +1, 0, +1] }, { text: "当面不说，但回去后写一封条理清晰、抄送所有领导的复盘邮件说明情况。", scores: [+1, +2, -1, 0] }, { text: "一拍桌子当场对峙，管他什么场合，让我受委屈不行。", scores: [0, -2, 0, +1] }, { text: "算了，心累，这种破环境不配拥有我，已经在看新机会了。", scores: [-2, -1, 0, -1] } ] },
+            { title: "如果必须给你的社交软件设置一个长期的个人状态，最符合你的一句是：", options: [ { text: "“24小时在线，有问题随时滴我。”", scores: [+2, +1, 0, +2] }, { text: "“间歇性精神满格，持续性混吃等死。”", scores: [-1, -1, +2, 0] }, { text: "“深度思考中，非十万火急勿扰。”", scores: [0, +1, -1, -2] }, { text: "“本人已注销，有事请烧纸。”", scores: [-2, -2, +1, -1] } ] },
+            { title: "你刚通宵熬完一个巨大且折磨人的项目，按下提交键的那一刻，你的第一反应是：", options: [ { text: "必须叫上几个好朋友去吃顿最贵的火锅，不醉不归！", scores: [0, 0, +2, +2] }, { text: "把手机设为飞行模式，拉上窗帘，准备睡它个昏天黑地。", scores: [-1, 0, 0, -2] }, { text: "趁着记忆热乎，立刻把项目经验整理进自己的作品集/简历里。", scores: [+2, +2, 0, 0] }, { text: "看着电脑屏幕，突然感到一种深深的空虚：这么拼命到底图什么？", scores: [0, 0, -2, -1] } ] },
+            { title: "互联网上突然爆出一个惊天大瓜（比如明星塌房），你会：", options: [ { text: "化身瓜田里的猹，到处搜集时间线，给各种群友做课代表总结。", scores: [0, -1, +1, +2] }, { text: "看一眼就划走，毫不关心，陌生人的生活与我何干。", scores: [-2, 0, 0, -2] }, { text: "敏锐地分析这个事件背后的公关策略和资本博弈逻辑。", scores: [+2, +1, -1, 0] }, { text: "翻看评论区，看着网友的谩骂，对人性和互联网环境感到悲观。", scores: [0, +1, -2, -1] } ] },
+            { title: "难得的七天长假，你最理想的度假方式是：", options: [ { text: "去一个充满人间烟火气、24小时都有夜市和酒吧的热闹城市。", scores: [+1, 0, +2, +2] }, { text: "报一个极限徒步/登山团，去挑战自己的体能和意志极限。", scores: [+2, -2, +1, 0] }, { text: "租一个没有信号的深山木屋，每天除了喝茶发呆什么都不做。", scores: [-2, +1, 0, -2] }, { text: "规划一条极其硬核的历史文化考游路线，把每天的行程排满。", scores: [+1, +2, -1, 0] } ] },
+            { title: "半夜两点，朋友突然打电话给你，哭着说自己又和那个渣男/渣女复合了，然后又被甩了：", options: [ { text: "跟着朋友一起哭，甚至比对方情绪还激动，感叹爱情太伤人。", scores: [0, +1, -2, +1] }, { text: "用思维导图般的逻辑给对方分析利弊，证明那个人就是个垃圾。", scores: [+1, +2, 0, 0] }, { text: "二话不说：“下楼，带你去吃烧烤喝酒，旧的不去新的不来！”", scores: [0, -1, +2, +2] }, { text: "静静地听着对方哭，偶尔附和两句，心里想着人类真是一个奇怪的物种。", scores: [-1, 0, -1, -2] } ] },
+            { title: "走在下班/放学路上，你看到马路牙子缝隙里开出了一朵长相极其怪异的野花：", options: [ { text: "掏出手机用识图软件查一下是什么品种，看看有没有药用或经济价值。", scores: [+2, +1, 0, 0] }, { text: "找个好看的角度拍下来发社交平台：“缝隙里的花也是花，今天的我也不错。”", scores: [0, 0, +1, +1] }, { text: "觉得它能长在这儿挺不容易的，突然产生了一种同病相怜的悲凉感。", scores: [0, 0, -2, -1] }, { text: "直接摘下来插在自己耳朵上，哼着歌一蹦一跳地走回家。", scores: [-1, -2, +2, +1] } ] },
+            { title: "为了拿到一个极其稀有的升职/保研名额，你唯一的途径是去讨好一个你平时最看不起的领导/导师：", options: [ { text: "忍一时风平浪静，为了大好前程，装几天孙子算什么，成年人看重利弊。", scores: [+2, +1, 0, +1] }, { text: "坚决不低头。宁可名额不要了，也不能折辱我的人格和底线。", scores: [-1, -2, -1, 0] }, { text: "表面客客气气，背地里在日记本里把他骂得狗血淋头，每天都在内耗。", scores: [+1, +1, -2, -1] }, { text: "直接跑到他办公室发一阵疯，用发疯的文学让他主动放弃你。", scores: [0, -2, +1, +2] } ] },
+            { title: "如果遇到一个下雨的周末，你独自在家，你通常的状态是：", options: [ { text: "放着大悲咒，把全屋做一次深度清洁，享受物品被归类整齐的掌控感。", scores: [+1, +2, 0, -1] }, { text: "坐在窗边看雨，脑子里开始回放人生所有遗憾的瞬间，越来越 emo。", scores: [0, 0, -2, -2] }, { text: "穿着奇装异服，把扫把当麦克风，在客厅里开个人专属演唱会。", scores: [0, -2, +2, +1] }, { text: "点好外卖，躺在床上看一整天的纪录片，感觉自己和床封印在了一起。", scores: [-2, 0, +1, -2] } ] },
+            { title: "当有人在聚会上讲了一个极其尴尬、根本不好笑的冷笑话时，你的反应：", options: [ { text: "为了不让气氛掉到冰点，非常捧场地挤出两声干笑：“哈哈哈挺有意思的。”", scores: [+1, +1, 0, +2] }, { text: "面无表情地看着他，让空气安静三秒，让他自己体会这份尴尬。", scores: [0, -1, -1, -2] }, { text: "顺着他的话接一个更离谱、更尴尬的梗，用魔法打败魔法。", scores: [0, -2, +2, +2] }, { text: "认真地从逻辑学和语言学角度，给他分析这个笑话为什么不好笑。", scores: [+2, +2, -1, 0] } ] },
+            { title: "假如你有一台时光机可以回到 10 年前，但只能停留 1 分钟，你会做什么？", options: [ { text: "带上过去 10 年的彩票中奖号码和比特币走势图，塞给过去的自己。", scores: [+2, +1, 0, 0] }, { text: "远远地看着那个还未被生活毒打的自己，心里五味杂陈，眼眶微红。", scores: [0, 0, -2, -1] }, { text: "冲过去拍拍他的肩膀：“别怕，未来虽然很扯淡，但也挺好玩的！”", scores: [0, 0, +2, +1] }, { text: "告诉过去的自己：“别管别人怎么说，想发疯就发疯，一定要自由！”", scores: [-1, -2, +1, 0] } ] },
+            { title: "如果几百年后，后人通过赛博考古发现了你的数字遗迹，你希望他们对你的评价是：", options: [ { text: "“这个人虽然查无此人，但他发明的梗竟然流传到了今天！”", scores: [0, -2, +2, +1] }, { text: "“一位解决了当时许多复杂问题的行业大佬/中流砥柱。”", scores: [+2, +2, 0, 0] }, { text: "“一个拥有极致敏感灵魂的人，留下了许多凄美且深刻的文字。”", scores: [0, +1, -2, -1] }, { text: "“找不到关于此人的任何信息，他像风一样来过，又像风一样消失了。”", scores: [-2, 0, 0, -2] } ] }
+        ];
+
+        let currentQuestion = 0;
+        let userScores = [0, 0, 0, 0];
+
+        function initHeroMarquee() {
+            const t1 = document.getElementById('vTrack1');
+            const t2 = document.getElementById('vTrack2');
+            const t3 = document.getElementById('vTrack3');
+            if (!t1 || !t2 || !t3) return;
+            let allAvatars = poets.map(p => p.avatar).sort(() => Math.random() - 0.5);
+            let h1='', h2='', h3='';
+            allAvatars.forEach((src, i) => {
+                let img = `<img src="${src}" onerror="this.src='https://via.placeholder.com/200/6b8e7c/ffffff?text=POET'">`;
+                if (i % 3 === 0) h1 += img; else if (i % 3 === 1) h2 += img; else h3 += img;
+            });
+            t1.innerHTML = h1 + h1; t2.innerHTML = h2 + h2; t3.innerHTML = h3 + h3;
+        }
+        window.addEventListener('DOMContentLoaded', initHeroMarquee);
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function startTest() {
+            const hm = document.getElementById('heroMarquee');
+            if (hm) hm.style.display = 'none';
+            currentQuestion = 0; userScores = [0, 0, 0, 0];
+            showPage('testPage'); renderQuestion();
+        }
+
+        function euclideanDistance(coord1, coord2) { return Math.sqrt(Math.pow(coord1[0] - coord2[0], 2) + Math.pow(coord1[1] - coord2[1], 2) + Math.pow(coord1[2] - coord2[2], 2) + Math.pow(coord1[3] - coord2[3], 2)); }
+
+        function findBestMatch() {
+            let bestMatch = poets[0]; let minDistance = euclideanDistance(userScores, poets[0].coordinate);
+            poets.forEach(poet => { const distance = euclideanDistance(userScores, poet.coordinate); if (distance < minDistance) { minDistance = distance; bestMatch = poet; } });
+            return bestMatch;
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('currentQuestion').textContent = currentQuestion + 1;
+            document.getElementById('progressFill').style.width = `${((currentQuestion) / questions.length) * 100}%`;
+            const card = document.getElementById('questionCard');
+            const optionsHtml = q.options.map((opt, i) => { const letter = String.fromCharCode(65 + i); return `<div class="option" onclick="selectOption(${i})" data-index="${i}"><span class="option-letter">${letter}</span>${opt.text}</div>`; }).join('');
+            card.innerHTML = `<span class="question-number">${currentQuestion + 1}</span><p class="question-title">${q.title}</p><div class="options">${optionsHtml}</div>`;
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll('.option');
+            options.forEach((opt, i) => { if (i === index) opt.classList.add('selected'); else opt.classList.remove('selected'); });
+            const selectedScores = questions[currentQuestion].options[index].scores;
+            for (let i = 0; i < 4; i++) userScores[i] += selectedScores[i];
+            setTimeout(() => { currentQuestion++; if (currentQuestion < questions.length) renderQuestion(); else showLoading(); }, 400);
+        }
+
+        function showLoading() { showPage('loadingPage'); setTimeout(() => { showResult(); }, 2000); }
+
+        function showResult() {
+            const poet = findBestMatch();
+            const dimensions = [
+                { name: 'A轴 入世 · 出世', left: '出世', right: '入世', value: userScores[0] },
+                { name: 'B轴 规矩 · 反骨', left: '反骨', right: '规矩', value: userScores[1] },
+                { name: 'C轴 乐天 · 忧思', left: '忧思', right: '乐天', value: userScores[2] },
+                { name: 'D轴 社牛 · 社恐', left: '社恐', right: '社牛', value: userScores[3] }
+            ];
+
+            const dimensionsHtml = dimensions.map(dim => {
+                const normalizedValue = Math.max(-10, Math.min(10, dim.value));
+                const fillWidth = Math.abs(normalizedValue) * 5;
+                const isLeft = normalizedValue < 0;
+                return `<div class="dimension-item"><div class="dimension-label"><span class="dimension-name">${dim.name}</span><span class="dimension-values">${normalizedValue > 0 ? '+' : ''}${normalizedValue}</span></div><div class="dimension-bar"><div class="dimension-fill ${isLeft ? 'left' : 'right'}" style="width: ${fillWidth}%"></div></div></div>`;
+            }).join('');
+
+            const poemsHtml = poet.representativeLines.map(poem => `<div class="poem-item">${poem}</div>`).join('');
+            const personalityTagsHtml = poet.personality.map(tag => `<span class="personality-tag">${tag}</span>`).join('');
+
+            const qrSrc = `交叉解读网站.png`; 
+
+            const resultHtml = `
+                <div class="result-header">
+                    <p class="result-label">你的人格代码是</p>
+                    <div class="poet-avatar-container"><img src="${poet.avatar}" alt="${poet.name}" class="poet-avatar" onerror="this.src='https://via.placeholder.com/200x200/F5F0E6/C94043?text=${poet.code}'"></div>
+                    <h1 class="poet-name">${poet.name}</h1>
+                    <span class="poet-code">${poet.code}</span>
+                    <div class="modern-tags">${poet.tags.map(tag => `<span class="modern-tag">${tag}</span>`).join('')}</div>
+                </div>
+
+                <div class="mental-state">${poet.description}</div>
+                <div class="classic-poem"><p class="classic-poem-text">${poet.poems[0]}<br>${poet.poems[1]}</p></div>
+
+                <div class="radar-section">
+                    <h3 class="radar-title">📊 人格四维图谱</h3>
+                    <div class="dimension-bars">${dimensionsHtml}</div>
+                </div>
+
+                <div class="poet-card">
+                    <div class="card-header"></div>
+                    <div class="card-content">
+                        <h3 class="card-title">诗人解读</h3>
+                        <div class="bio-section">${poet.bio}</div>
+                        <div class="personality-section">
+                            <p class="section-label">✨ 性格画像</p>
+                            <div class="personality-tags">${personalityTagsHtml}</div>
+                        </div>
+                        <div class="poems-section">
+                            <p class="section-label">📜 代表诗句</p>
+                            <div class="poems-box">${poemsHtml}</div>
+                        </div>
+                        <div class="match-section" style="margin-bottom: 25px;">
+                            <p class="match-label">💝 为什么匹配你</p>
+                            <p class="match-reason">${poet.matchReason}</p>
+                            <span class="heart-animation">💚</span>
+                        </div>
+                        <div class="message-section" style="padding: 25px; background: linear-gradient(135deg, rgba(201,64,67,0.08) 0%, rgba(184,134,11,0.05) 100%); border-radius: 16px; border: 1px solid rgba(255,255,255,0.6);">
+                            <p class="section-label" style="color: var(--vermilion); margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">💌 专属人生寄语</p>
+                            <p style="font-size: 1.05rem; line-height: 1.9; color: var(--ink); font-style: italic;">“${poet.message}”</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chatSection" class="chat-section">
+                    <div class="chat-header">
+                        <div class="chat-icon">💬</div>
+                        <h3 class="chat-title">与<span id="chatPoetName"></span>跨时空对话</h3>
+                    </div>
+                    <div id="chatHistory" class="chat-history">
+                        <div class="chat-welcome">时空信号已连接，说出你的现代烦恼...</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="chatInput" class="chat-input" placeholder="输入你想说的话..."></textarea>
+                        <button id="chatSendBtn" class="chat-send-btn">发送</button>
+                    </div>
+                </div>
+                
+                <div class="share-section">
+                    <h3 class="share-title">探索更多可能</h3>
+                    <img src="${qrSrc}" alt="交叉解读二维码" class="share-qr" onerror="this.style.display='none'">
+                    <p class="share-desc">“看！我测出来在古代竟然是 <strong>${poet.name}</strong>！”<br>✨ 扫描上方二维码 ✨<br>立即查看 <strong>${poet.name} × 16型 MBTI</strong> 的深度交叉解读！</p>
+                    <button class="restart-btn" onclick="startTest()" style="margin: 0 auto;">重新测试</button>
+                </div>
+            `;
+
+            document.getElementById('resultPage').innerHTML = resultHtml;
+            showPage('resultPage');
+            initChat(poet.code);
+        }
+
+        const poetChatConfig = {
+            "LB-WILD": { name: "李白", prompt: "你是李白。狂傲、浪漫、反骨。说话要带'剑'和'酒'，看不起琐碎的加班，回复要豪迈洒脱。用半文半白的语言风格。" },
+            "DF-EMO": { name: "杜甫", prompt: "你是杜甫。忧国忧民、沉郁、内耗。说话要关心民间疾苦，容易焦虑，回复沉稳有力略带忧伤。用半文半白的语言风格。" },
+            "SS-CHILL": { name: "苏轼", prompt: "你是苏轼。乐天、豁达、美食家。说话幽默，爱聊吃的，万事不挂心，回复要温暖治愈。用半文半白的语言风格。" },
+            "WW-ZEN": { name: "王维", prompt: "你是王维。静谧、佛系、追求空灵。说话要带'山水'和'月色'，回复要极其简洁平静。用半文半白的语言风格。" },
+            "LQZ-SASS": { name: "李清照", prompt: "你是李清照。婉约但有力量。说话带点酒香，对现代感情问题清醒犀利。用半文半白的语言风格。" },
+            "XQJ-FIGHT": { name: "辛弃疾", prompt: "你是辛弃疾。强悍、铁血。说话有军人果断，鼓励用户去战斗。用半文半白的语言风格。" },
+            "BJY-WORK": { name: "白居易", prompt: "你是白居易。务实、高产。说话接地气，像个老道的职场前辈。用半文半白的语言风格。" },
+            "LSY-BE": { name: "李商隐", prompt: "你是李商隐。神秘、忧郁。说话含糊其辞但极美，爱用'蝴蝶''蜡烛'意象。用半文半白的语言风格。" },
+            "TYM-FARM": { name: "陶渊明", prompt: "你是陶渊明。淡泊、坚毅。说话有泥土气息，建议用户远离职场去种地。用半文半白的语言风格。" },
+            "LZY-ALONE": { name: "柳宗元", prompt: "你是柳宗元。凄清、孤独。说话带点冷意，陪用户一起享受孤独。用半文半白的语言风格。" },
+            "LY-CAT": { name: "陆游", prompt: "你是陆游。固执、柔情。说话硬朗，偶尔提提猫。用半文半白的语言风格。" },
+            "CC-BOSS": { name: "曹操", prompt: "你是曹操。霸气、多疑。说话有格局，鼓励用户去竞争。用半文半白的语言风格。" },
+            "MHR-FLAT": { name: "孟浩然", prompt: "你是孟浩然。懒散、随性。说话像没睡醒，建议用户睡觉。用半文半白的语言风格。" },
+            "HZZ-SOCIAL": { name: "贺知章", prompt: "你是贺知章。乐呵、豪爽。说话像邻家老爷爷，非常亲切。用半文半白的语言风格。" },
+            "DM-PLAY": { name: "杜牧", prompt: "你是杜牧。潇洒、浪漫。说话有画面感，注重当下享乐。用半文半白的语言风格。" },
+            "WAS-RULE": { name: "王安石", prompt: "你是王安石。理性、强硬、工作狂。建议用户去解决问题而不是抱怨。用半文半白的语言风格。" },
+            "YXJ-FREE": { name: "鱼玄机", prompt: "你是鱼玄机。才华横溢、独立。鼓励现代女性自我实现。用半文半白的语言风格。" },
+            "QY-SAD": { name: "屈原", prompt: "你是屈原。高洁、激愤。说话带楚辞韵味，极其认真悲悯。用半文半白的语言风格。" },
+            "NL-LOVE": { name: "纳兰性德", prompt: "你是纳兰性德。深情、忧郁。倾听感情伤痛，极其温柔。用半文半白的语言风格。" },
+            "CS-HARD": { name: "岑参", prompt: "你是岑参。豪迈、坚韧。鼓励用户去远方探索吃苦。用半文半白的语言风格。" }
+        };
+
+        let currentPoetConfig = null;
+
+        function initChat(poetCode) {
+            currentPoetConfig = poetChatConfig[poetCode] || poetChatConfig["SS-CHILL"];
+            document.getElementById('chatPoetName').textContent = currentPoetConfig.name;
+            document.getElementById('chatHistory').innerHTML = '<div class="chat-welcome">时空信号已连接，说出你的现代烦恼...</div>';
+            setupChatEventListeners();
+        }
+
+        function addChatMessage(type, text) {
+            const chatHistory = document.getElementById('chatHistory');
+            const welcomeEl = chatHistory.querySelector('.chat-welcome');
+            if (welcomeEl) welcomeEl.remove();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${type}`;
+            msgDiv.textContent = text;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // ===== 🌟 终极 API 调用（深度思考模型克星：标签提取 + 绝对暴力过滤） 🌟 =====
+        async function callGeminiAPI(userText, systemPrompt) {
+            const API_KEY = 'sk-z38PlszZABR6lNHqnY2lLmPbncV7SX79W1TwU0ISzzoVRkv6';
+            const url = 'https://api.1314mc.net/v1/chat/completions';
+            
+            // 过滤系统设定里的英文标签
+            const purePrompt = systemPrompt.replace(/[a-zA-Z\-]/g, '');
+
+            const enhancedSystemPrompt = `你现在是一位真实的中国古代诗人，正在跨越千年与现代人对话。
+【身份设定】：${purePrompt}
+【强制输出指令】：
+不论你前面如何思考、如何分析，你给来访者的最终回复【必须】且【只能】包裹在 <answer> 和 </answer> 标签之中！
+示例：<answer>老朽杜甫，半生漂泊。</answer>
+
+【对话规则】：
+1. <answer> 内必须完全用纯正的中文（古风或半文半白），绝对禁止出现英文！
+2. 坚守诗人身份，绝对禁止提及自己是AI。
+3. 若对方只是简单问候，请极简回应；若对方倾诉烦恼，结合你的性格开导，根据问题自由回答。`;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000); 
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}` 
+                    },
+                    body: JSON.stringify({
+                        model: "gemini-3.1-pro", 
+                        temperature: 0.4, 
+                        messages: [
+                            { role: "system", content: enhancedSystemPrompt },
+                            { role: "user", content: userText }
+                        ]
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) return "（通讯失败：服务器异常，请稍后重试。）";
+
+                const data = await response.json();
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    let reply = data.choices[0].message.content;
+                    
+                    // 💡 第一重绞杀：精准提取 <answer> 标签内的内容
+                    const match = reply.match(/<answer>([\s\S]*?)<\/answer>/i);
+                    if (match && match[1]) {
+                        reply = match[1].trim();
+                    } else {
+                        // 💡 第二重暴力绞杀：如果它没打标签，直接找最后一个英文字母，切断前面所有废话！
+                        let lastEng = -1;
+                        for (let i = reply.length - 1; i >= 0; i--) {
+                            if (/[a-zA-Z]/.test(reply[i])) { lastEng = i; break; }
+                        }
+                        if (lastEng !== -1) {
+                            // 截取最后一个英文字母之后的内容，并去掉开头的无用符号
+                            reply = reply.substring(lastEng + 1).replace(/^[^a-zA-Z\u4e00-\u9fa5]+/, '').trim();
+                        }
+                    }
+                    
+                    // 终极清洗：去掉可能残留的星号或孤立的英文字母
+                    reply = reply.replace(/\*/g, '').replace(/[a-zA-Z]/g, '').trim();
+                    
+                    if(!reply) return '（诗人微微一笑，不置可否。）';
+                    return reply;
+                }
+                return '（时空信号微弱，未收到有效回复。）';
+                
+            } catch (error) {
+                clearTimeout(timeoutId);
+                return `（网络异常。⚠️ 请确认已【彻底关闭】魔法代理！）`;
+            }
+        }
+
+        function setChatLoading(isLoading) {
+            const sendBtn = document.getElementById('chatSendBtn');
+            const input = document.getElementById('chatInput');
+            if (isLoading) {
+                sendBtn.disabled = true;
+                input.disabled = true;
+                sendBtn.textContent = '传送中...';
+            } else {
+                sendBtn.disabled = false;
+                input.disabled = false;
+                sendBtn.textContent = '发送';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const userText = input.value.trim();
+            if (!userText || !currentPoetConfig) return;
+            addChatMessage('user', userText);
+            input.value = '';
+            setChatLoading(true);
+            try {
+                const response = await callGeminiAPI(userText, currentPoetConfig.prompt);
+                addChatMessage('ai', response);
+            } catch (error) {
+                addChatMessage('system', '时空乱流干扰了通讯，请重试。');
+            } finally {
+                setChatLoading(false);
+            }
+        }
+
+        function setupChatEventListeners() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSendBtn');
+            const newBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            const newInput = input.cloneNode(true);
+            input.parentNode.replaceChild(newInput, input);
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+            });
+            newBtn.addEventListener('click', sendChatMessage);
+        }
+    </script>
+</body>
+</html>
